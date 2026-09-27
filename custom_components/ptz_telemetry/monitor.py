@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Awaitable, Callable
 
 
@@ -39,6 +39,7 @@ async def confirm_destination(
         raise ValueError("invalid observation bounds")
     loop = asyncio.get_running_loop()
     deadline = loop.time() + timeout
+    started_at = datetime.now(timezone.utc)
     stable = samples = 0
     last: Position | None = None
     while current():
@@ -55,6 +56,13 @@ async def confirm_destination(
             return Confirmation(False, "unavailable", last, samples)
         if not current():
             break
+        try:
+            fresh = started_at <= position.measured_at <= datetime.now(timezone.utc)
+            fresh = fresh and (last is None or position.measured_at > last.measured_at)
+        except TypeError:
+            fresh = False
+        if not fresh:
+            return Confirmation(False, "stale", last, samples)
         samples += 1
         last = position
         on_read(position)
