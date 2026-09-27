@@ -1,0 +1,45 @@
+confirm_destination:
+  name: Confirm PTZ destination
+  description: Read the physical pan/tilt position until two fresh measurements confirm the requested destination or the bounded timeout expires. Does not move the camera.
+  fields:
+    entity_id:
+      name: PTZ telemetry sensor
+      required: true
+      selector:
+        entity:
+          domain: sensor
+          integration: ptz_telemetry
+    pan:
+      name: Target pan
+      required: true
+      selector:
+        number:
+          mode: box
+    tilt:
+      name: Target tilt
+      required: true
+      selector:
+        number:
+          mode: box
+    tolerance:
+      name: Position tolerance
+      selector:
+        number:
+          min: 0
+          max: 200
+          mode: box
+    interval:
+      name: Poll interval in seconds
+      selector:
+        number:
+          min: 0.1
+          max: 2
+          step: 0.05
+          mode: box
+    timeout:
+      name: Maximum observation time in seconds
+      selector:
+        number:
+          min: 1
+          max: 60
+          mode: box

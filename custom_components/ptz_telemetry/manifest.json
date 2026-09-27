@@ -1,0 +1,12 @@
+{
+  "domain": "ptz_telemetry",
+  "name": "PTZ Telemetry",
+  "version": "0.1.0",
+  "documentation": "https://github.com/dbustosrc/ptz-telemetry",
+  "issue_tracker": "https://github.com/dbustosrc/ptz-telemetry/issues",
+  "config_flow": true,
+  "integration_type": "device",
+  "iot_class": "local_push",
+  "requirements": ["reolink-aio==0.21.17"],
+  "codeowners": ["@dbustosrc"]
+}

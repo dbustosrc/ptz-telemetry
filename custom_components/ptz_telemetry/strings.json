@@ -1,0 +1,25 @@
+{
+  "title": "PTZ Telemetry",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect a Reolink PTZ camera",
+        "data": {
+          "host": "Camera host",
+          "baichuan_port": "Camera telemetry port",
+          "connection": "Connection type",
+          "username": "Username",
+          "password": "Password",
+          "channel": "Camera channel"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Unable to read PTZ position. Check connection, credentials and PTZ support.",
+      "invalid_host": "Enter a camera host."
+    },
+    "abort": {
+      "already_configured": "This camera channel is already configured."
+    }
+  }
+}
