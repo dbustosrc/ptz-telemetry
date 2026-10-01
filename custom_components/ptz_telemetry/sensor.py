@@ -47,4 +47,6 @@ class PTZPositionSensor(SensorEntity):
             "last_pan": position.pan,
             "last_tilt": position.tilt,
             "last_measured_at": position.measured_at.isoformat(),
+            "stable_intervals": list(self._runtime.stable_intervals),
+            "requested_destination": self._runtime.requested_destination,
         }

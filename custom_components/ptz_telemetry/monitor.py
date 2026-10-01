@@ -21,6 +21,7 @@ class Confirmation:
     reason: str
     position: Position | None
     samples: int
+    settled_since: datetime | None = None
 
 
 async def confirm_destination(
@@ -42,6 +43,7 @@ async def confirm_destination(
     started_at = datetime.now(timezone.utc)
     stable = samples = 0
     last: Position | None = None
+    settled_since: datetime | None = None
     while current():
         remaining = deadline - loop.time()
         if remaining <= 0:
@@ -66,8 +68,10 @@ async def confirm_destination(
         samples += 1
         last = position
         on_read(position)
-        stable = stable + 1 if abs(position.pan - pan) <= tolerance and abs(position.tilt - tilt) <= tolerance else 0
+        matches = abs(position.pan - pan) <= tolerance and abs(position.tilt - tilt) <= tolerance
+        settled_since = (settled_since or position.measured_at) if matches else None
+        stable = stable + 1 if matches else 0
         if stable >= 2:
-            return Confirmation(True, "confirmed", position, samples)
+            return Confirmation(True, "confirmed", position, samples, settled_since)
         await asyncio.sleep(min(interval, max(0, deadline - loop.time())))
     return Confirmation(False, "superseded", last, samples)

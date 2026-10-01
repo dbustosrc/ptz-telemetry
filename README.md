@@ -36,5 +36,12 @@ presence. It reads rapidly only while the action is running.
 
 Use your camera's actual coordinates; these values are only an example.
 
+An optional `destination` string labels a confirmation without introducing
+room or camera-control logic. `settled_since` and `measured_at` bracket the two
+compatible fresh readings. The sensor exposes up to 64 `stable_intervals` and
+the `requested_destination`; consumers must not extrapolate those closed
+intervals or treat the last position as a continuous motion monitor. Gaps
+longer than three seconds do not publish a historical stability interval.
+
 Run the deterministic check with `PYTHONPATH=custom_components python -m
 unittest discover -s tests`.

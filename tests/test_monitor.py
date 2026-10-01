@@ -27,6 +27,8 @@ class MonitorTests(unittest.IsolatedAsyncioTestCase):
         result = await confirm_destination(read, pan=100, tilt=100, tolerance=0, interval=0.1)
         self.assertTrue(result.confirmed)
         self.assertEqual(result.samples, 3)
+        self.assertIsNotNone(result.settled_since)
+        self.assertLess(result.settled_since, result.position.measured_at)
 
     async def test_error_and_superseded_fail_closed(self):
         async def failed():
@@ -46,6 +48,7 @@ class MonitorTests(unittest.IsolatedAsyncioTestCase):
         result = await confirm_destination(read, pan=1, tilt=1, interval=0.1, timeout=1)
         self.assertFalse(result.confirmed)
         self.assertEqual(result.reason, "timeout")
+        self.assertIsNone(result.settled_since)
 
     async def test_stale_or_repeated_measurement_cannot_confirm(self):
         old = datetime(2020, 1, 1, tzinfo=timezone.utc)

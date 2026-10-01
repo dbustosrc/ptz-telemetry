@@ -28,6 +28,11 @@ confirm_destination:
           min: 0
           max: 200
           mode: box
+    destination:
+      name: Destination label
+      description: Optional opaque label for the measured interval. A consumer can map this label to its camera geometry.
+      selector:
+        text:
     interval:
       name: Poll interval in seconds
       selector:

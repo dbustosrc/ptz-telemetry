@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import importlib.util
+import asyncio
 import unittest
 from datetime import datetime, timezone
 from types import SimpleNamespace
@@ -11,6 +12,23 @@ from unittest.mock import AsyncMock, patch
 
 @unittest.skipUnless(importlib.util.find_spec("homeassistant"), "requires Home Assistant")
 class NativeContractTests(unittest.IsolatedAsyncioTestCase):
+    async def test_cancelled_confirmation_does_not_remain_observing(self):
+        from ptz_telemetry import CONFIRM_SCHEMA, PTZRuntime
+        from ptz_telemetry.monitor import Position
+        entered = asyncio.Event()
+        async def read():
+            entered.set()
+            await asyncio.Event().wait()
+        runtime = PTZRuntime(SimpleNamespace(async_read=read), Position(0, 0, datetime.now(timezone.utc)))
+        task = asyncio.create_task(runtime.confirm(SimpleNamespace(data=CONFIRM_SCHEMA({
+            "entity_id": "sensor.position", "pan": 100, "tilt": 200, "destination": "profile_a"}))))
+        await entered.wait()
+        task.cancel()
+        with self.assertRaises(asyncio.CancelledError):
+            await task
+        self.assertEqual(runtime.status, "cancelled")
+        self.assertFalse(runtime.stable_intervals)
+
     async def test_reader_performs_a_fresh_baichuan_query(self):
         from ptz_telemetry.reader import ReolinkPositionReader
 
@@ -39,12 +57,16 @@ class NativeContractTests(unittest.IsolatedAsyncioTestCase):
 
         reader = Reader()
         runtime = PTZRuntime(reader, Position(0, 0, datetime.now(timezone.utc)))
-        data = CONFIRM_SCHEMA({"entity_id": "sensor.ptz_telemetry", "pan": 100, "tilt": 200})
+        data = CONFIRM_SCHEMA({"entity_id": "sensor.ptz_telemetry", "pan": 100, "tilt": 200,
+                               "destination": "profile_example"})
         response = await runtime.confirm(SimpleNamespace(data=data))
         self.assertTrue(response["confirmed"])
         self.assertEqual(response["samples"], 2)
         self.assertEqual(reader.reads, 2)
         self.assertEqual(runtime.status, "confirmed")
+        self.assertEqual(len(runtime.stable_intervals), 1)
+        self.assertEqual(runtime.stable_intervals[0]["destination"], "profile_example")
+        self.assertEqual(runtime.stable_intervals[0]["start"], response["settled_since"])
 
 
 if __name__ == "__main__":
