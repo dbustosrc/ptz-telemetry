@@ -20,6 +20,9 @@ jobs:
 
   home-assistant:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        core: ["2026.9.3", "2026.11.0"]
     steps:
       - uses: actions/checkout@v4
       - run: >-
@@ -28,7 +31,7 @@ jobs:
           -e PYTHONPATH=/workspace/custom_components
           -e PYTHONDONTWRITEBYTECODE=1
           --entrypoint python3
-          ghcr.io/home-assistant/home-assistant:2026.9.3
+          ghcr.io/home-assistant/home-assistant:${{ matrix.core }}
           -m unittest discover -s tests -v
 
   hacs:

@@ -30,18 +30,24 @@ class NativeContractTests(unittest.IsolatedAsyncioTestCase):
         self.assertFalse(runtime.stable_intervals)
 
     async def test_reader_performs_a_fresh_baichuan_query(self):
+        # The native integration must import with the same library as the reader.
+        importlib.import_module("homeassistant.components.reolink")
+        importlib.import_module("ptz_telemetry.config_flow")
         from ptz_telemetry.reader import ReolinkPositionReader
 
-        with patch("ptz_telemetry.reader.Host") as host_type:
-            api = host_type.return_value
-            api.baichuan.get_ptz_position = AsyncMock()
-            api.ptz_pan_position.return_value = 100
-            api.ptz_tilt_position.return_value = 200
-            reader = ReolinkPositionReader("camera.example", "user", "secret", 9000, "tcp", 0)
+        reader = ReolinkPositionReader("camera.example", "user", "secret", 9000, "tcp", 0)
+        self.addAsyncCleanup(reader.async_close)
+        api = reader._api
+        with (
+            patch.object(api.baichuan, "get_ptz_position", new_callable=AsyncMock) as read_position,
+            patch.object(api, "ptz_pan_position", return_value=100),
+            patch.object(api, "ptz_tilt_position", return_value=200),
+            patch.object(api, "get_host_data", new_callable=AsyncMock) as read_host,
+        ):
             position = await reader.async_open()
-            api.baichuan.get_ptz_position.assert_awaited_once_with(0)
+            read_position.assert_awaited_once_with(0)
             self.assertEqual((position.pan, position.tilt), (100, 200))
-            api.get_host_data.assert_not_called()
+            read_host.assert_not_called()
 
     async def test_response_and_no_camera_commands(self):
         from ptz_telemetry import CONFIRM_SCHEMA, PTZRuntime

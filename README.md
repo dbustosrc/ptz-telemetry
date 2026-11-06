@@ -5,6 +5,10 @@ provider is a Reolink camera exposing PTZ position through `reolink-aio`.
 Other brands are not yet supported; ONVIF movement indicators are not used as
 arrival evidence.
 
+PTZ Telemetry uses the `reolink-aio` version selected by Home Assistant's
+built-in Reolink integration. It does not need a configured Reolink entry and
+keeps its own read-only connection.
+
 Install this repository as a custom integration in HACS, restart Home Assistant,
 then add **PTZ Telemetry** in Devices & Services. Supply a camera host, camera
 credentials, telemetry port and channel. The default port is 9000; TCP is
